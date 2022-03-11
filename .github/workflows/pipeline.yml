@@ -4,23 +4,28 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 6.0.*
-    - name: Build for Windows
-      run: dotnet publish -r win-x64 -c Release /p:PublishSingleFile=true /p:PublishTrimmed=true
-    - name: Build for Linux
-      run: dotnet publish -r linux-x64 --configuration ReleaseComplete
-    - name: Show contents of the current directory - na build
-      run: ls -lR
-    - name: Upload artifact - Windows
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: API_NETzipfile
-        path: bin/Release/net6.0/win-x64/publish/API_NET.exe
+      - uses: actions/checkout@v1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.*
+      - name: Build for Windows
+        run: dotnet publish -r win-x64 -c Release /p:PublishSingleFile=true /p:PublishTrimmed=true
+      - name: Build for Linux
+        run: dotnet publish -r linux-x64 --configuration ReleaseComplete
+      - name: Show contents of the current directory - na build
+        run: ls -lR
+      - name: Upload artifact - Windows
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: API_NETzipfile
+          path: bin/Release/net6.0/win-x64/publish/API_NET.exe
+      - name: Docker login
+        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Docker Build
+        run: docker build -t ${{ secrets.DOCKER_USER }}/API_NET:latest .
+      - name: Upload container to Docker Hub with Push
+        run: docker push ${{ secrets.DOCKER_USER }}/API_NET:latest
